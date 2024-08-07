@@ -1,13 +1,13 @@
 import { ApolloServer } from "apollo-server-express"
-import { AuthMutation } from "../graphql/mutation/auth.mutation"
-import { UserResolver } from "../graphql/mutation/user.mutation"
 import { buildSchema } from "type-graphql"
+// import { ProductCrudResolver } from "@prisma/@generators/type-graphql"
+import { ProductResolver } from "../graphql/resolvers/product.resolver"
 
 export const apolloServerConfig = async (app: any) => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [AuthMutation, UserResolver],
+      resolvers: [ProductResolver],
       validate: false
     }),
     context: ({ req, res }) => ({ req, res }),

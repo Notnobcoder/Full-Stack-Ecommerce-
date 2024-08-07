@@ -1,6 +1,5 @@
 
 import { MiddlewareFn } from 'type-graphql';
-import { MyContext } from '../mutation/auth.mutation';
 
 // export const AuthMiddleware: MiddlewareFn<MyContext> = async ({ context }, next) => {
 //   // const sessionToken = context.req.cookies["auth-token"]
@@ -12,7 +11,7 @@ import { MyContext } from '../mutation/auth.mutation';
 //   return next();
 // };
 
-export const AuthMiddleware: MiddlewareFn<MyContext> = async ({ }, next) => {
+export const AuthMiddleware: MiddlewareFn = async ({ }, next) => {
   console.log("middleware working")
   return next();
 };

@@ -10,10 +10,11 @@ import { rateLimiter } from "./config/rateLimit.config"
 import { redis } from "./config/redis.config"
 import { expressSession } from "./config/session.config"
 import { socketConnection } from "./config/socket.config"
+dotenv.config()
 import { PORT } from "./utils/constansts.utils"
 
 
-dotenv.config()
+
 
 const main = async () => {
   if (process.env.NODE_ENV === "test") {

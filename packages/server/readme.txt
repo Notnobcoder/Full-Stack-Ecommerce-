@@ -1,18 +1,3 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-generator typegraphql {
-  provider            = "typegraphql-prisma"
-  output              = "../node_modules/@prisma/@generators/type-graphql"
-  emitTranspiledCode  = true
-  formatGeneratedCode = false
-}
-
-datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
-}
 
 enum MERCHANT_STATUS {
   Waiting_Approval
@@ -49,29 +34,33 @@ model Address {
 }
 
 model Brand {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  slug        String   @unique
+  slug        String    @unique
   image       Bytes
   description String?
-  isActive    Boolean  @default(false)
-  merchant    Merchant @relation(fields: [merchantId], references: [id])
-  created     DateTime @default(now())
-  updated     DateTime @updatedAt
-  merchantId  String   @db.ObjectId
+  isActive    Boolean   @default(false)
+  merchant    Merchant  @relation(fields: [merchantId], references: [id])
+  created     DateTime  @default(now())
+  updated     DateTime  @updatedAt
+  merchantId  String    @db.ObjectId
+  Product     Product[]
 }
 
 model Cart {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  users   User     @relation(fields: [userId], references: [id])
-  created DateTime @default(now())
-  updated DateTime @updatedAt
-  userId  String   @db.ObjectId
-  Order   Order[]
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  products  Product  @relation(fields: [productId], references: [id])
+  users     User     @relation(fields: [userId], references: [id])
+  created   DateTime @default(now())
+  updated   DateTime @updatedAt
+  productId String   @db.ObjectId
+  userId    String   @db.ObjectId
+  Order     Order[]
 }
 
 model CartItem {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  product       Product  @relation(fields: [productId], references: [id])
   quantity      Int      @default(0)
   purchasePrice Int      @default(0)
   totalPrice    Int      @default(0)
@@ -80,6 +69,7 @@ model CartItem {
   status        Status
   created       DateTime @default(now())
   updated       DateTime @updatedAt
+  productId     String   @db.ObjectId
 }
 
 model Category {
@@ -89,8 +79,10 @@ model Category {
   image       String
   description String
   isActive    String
+  products    Product  @relation(fields: [productId], references: [id])
   created     DateTime @default(now())
   updated     DateTime @updatedAt
+  productId   String   @db.ObjectId
 }
 
 model Contact {
@@ -129,22 +121,31 @@ model Order {
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  sku         String?
   name        String?
-  slug        String?
-  imageUrl    String?
-  imageKey    String
-  description String
+  slug        String?    @unique()
+  imageUrl    String?    @default("https://images.pexels.com/photos/335257/pexels-photo-335257.jpeg?auto=compress&cs=tinysrgb&w=800")
+  imageKey    String?
+  description String?
   quantity    Int
   price       Int
-  taxable     Boolean
-  isActive    Boolean
-  created     DateTime @default(now())
-  updated     DateTime @updatedAt
+  taxable     Boolean    @default(false)
+  isActive    Boolean    @default(false)
+  created     DateTime   @default(now())
+  updated     DateTime   @updatedAt
+  brand       Brand      @relation(fields: [brandId], references: [id])
+  CartItem    CartItem[]
+  Cart        Cart[]
+  Category    Category[]
+  brandId     String     @db.ObjectId
+  Review      Review[]
+  Wishlist    Wishlist[]
 }
 
 model Review {
   id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  product      Product         @relation(fields: [productId], references: [id])
   user         User            @relation(fields: [userId], references: [id])
   title        String
   rating       String
@@ -153,6 +154,7 @@ model Review {
   status       MERCHANT_STATUS
   created      DateTime        @default(now())
   updated      DateTime        @updatedAt
+  productId    String          @db.ObjectId
   userId       String          @db.ObjectId
 }
 
@@ -182,10 +184,12 @@ model User {
 }
 
 model Wishlist {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  user    User     @relation(fields: [userId], references: [id])
-  isLiked Boolean  @default(false)
-  created DateTime @default(now())
-  updated DateTime @updatedAt
-  userId  String   @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  isLiked   Boolean  @default(false)
+  created   DateTime @default(now())
+  updated   DateTime @updatedAt
+  productId String   @db.ObjectId
+  userId    String   @db.ObjectId
 }

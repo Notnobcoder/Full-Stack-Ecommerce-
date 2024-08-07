@@ -1,44 +1,41 @@
-import { Server as SocketIOServer, Socket } from "socket.io"
+import { Server as SocketIOServer } from "socket.io";
 
+const clients = new Map();
 
 export const socketConnection = (httpServer: any) => {
-
   const io = new SocketIOServer(httpServer, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
-    }
-  })
-  io.use((socket: Socket, next: any) => {
-    const { token } = socket.handshake.auth;
-
-    if (!token) {
-      return next(new Error('no token available'));
-    }
-    console.log(token)
-
-    console.log(process.env.JWT_SECRET)
-    next()
-    // try {
-    //   const payload = jwt.verify(token, process.env.JWT_SECRET as string);
-    //   console.log("Token payload:", payload);
-    //   socket.data.user = payload; // Attach payload to socket data if needed
-    //   next();
-    // } catch (error) {
-    //   console.error("Token verification error:", error);
-    //   next(new Error("Authentication error"));
-    // }
-
+      methods: ["GET", "POST"],
+    },
+    pingInterval: 25000, // Adjust the ping interval (default is 25000ms)
+    pingTimeout: 60000,  // Adjust the ping timeout (default is 60000ms)
   });
 
-
   io.on("connection", (socket) => {
-    console.log("A user connected")
+    console.log("A user connected");
 
-    socket.on("disconnect", () => {
-      console.log("A user disconnected")
-    })
-  })
-}
+    // Assuming you have some way to uniquely identify a client, such as a user ID.
+    const clientId = socket.handshake.query.clientId;
 
+    // Check if the client is already connected
+    if (clients.has(clientId)) {
+      // Disconnect the previous socket
+      const previousSocket = clients.get(clientId);
+      previousSocket.disconnect();
+    }
 
+    // Store the new socket
+    clients.set(clientId, socket);
+
+    socket.on("disconnect", (reason) => {
+      console.log(`A user disconnected due to: ${reason}`);
+      clients.delete(clientId);
+    });
+
+    socket.on("message", (msg) => {
+      console.log("Received message:", msg);
+      socket.broadcast.emit("message", msg);
+    });
+  });
+};
